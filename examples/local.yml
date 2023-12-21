@@ -1,0 +1,11 @@
+host_fa: /homes/heng.ma/Research/md_pkgs/esmfold_ppi/data/uniprot_human_reviewed.fasta
+viral_fa: /homes/heng.ma/Research/md_pkgs/esmfold_ppi/data/uniprot_viral_reviewed.fasta
+output_dir: runs/
+small_subset: 10
+
+esmfold:
+  torch_hub_dir: /homes/heng.ma/.cache
+
+compute_settings:
+  name: workstation
+  available_accelerators: [0, 1]

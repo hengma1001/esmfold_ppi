@@ -3,8 +3,8 @@ requires = ["setuptools>=64.0", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "foobar"
-version = "0.1.0"
+name = "esmfold_ppi"
+version = "0.0.0"
 authors = [
     {name = "foobar author"},
     {email = "foobar@foobar.com"},
@@ -22,6 +22,9 @@ classifiers = [
 dependencies = [
     "requests",
 ]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["envs/requirements.txt"]}
 
 [project.urls]
 homepage = "https://github.com/foobar-author/foobar"
@@ -138,7 +141,7 @@ quote-style = "single"
 
 [tool.ruff.isort]
 force-single-line = true
-known-first-party = ["foobar", "test", "testing"]
+known-first-party = ["esmfold_ppi", "test", "testing"]
 order-by-type = false
 required-imports = ["from __future__ import annotations"]
 
