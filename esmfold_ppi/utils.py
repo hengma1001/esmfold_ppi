@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 from typing import Optional, Type, TypeVar, Union
 
-import MDAnalysis as mda
 import yaml
 from Bio import SeqIO
 from pydantic import BaseModel as _BaseModel
@@ -20,7 +19,7 @@ def _resolve_path_exists(value: Optional[Path]) -> Optional[Path]:
     p = value.resolve()
     if not p.exists():
         raise FileNotFoundError(p)
-    return p
+    return p.absolute()
 
 
 def _resolve_mkdir(value: Path) -> Path:

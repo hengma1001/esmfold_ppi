@@ -6,3 +6,4 @@ openfold @ git+https://github.com/aqlaboratory/openfold.git@4b41059694619831a7db
 parsl==2023.11.20
 colmena
 pandas
+mdanalysis
