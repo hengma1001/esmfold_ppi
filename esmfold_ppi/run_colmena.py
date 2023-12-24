@@ -120,7 +120,10 @@ class Thinker(BaseThinker):  # type: ignore[misc]
         self.n_workers = n_workers
         self.result_logger = result_logger
         self.task_idx = 0
-        print(f"Running esmfold {len(self.df)} sequences. ")
+
+        self.host_seq = []
+        self.viral_seq = []
+        logging.info(f"Running esmfold {len(self.df)} sequences. ")
 
     def submit_esmfold_task(self):
         if self.task_idx >= len(self.df):
@@ -146,7 +149,12 @@ class Thinker(BaseThinker):  # type: ignore[misc]
     @result_processor(topic="esmfold")
     def process_esm_result(self, result: Result):
         self.result_logger.log(result, "esmfold")
-        print(result.value.dict())
+        if result.value.plddt >= 70:
+            if result.value.type == "host":
+                self.host_seq.append(result.value)
+            elif result.value.type == "viral":
+                self.viral_seq.append(result.value)
+
         if not result.success:
             logging.warning(f"Bad inference result: {result.json()}")
 
@@ -247,8 +255,14 @@ if __name__ == "__main__":
 
     logging.info(f"Loaded {len(seq_df)} proteins")
 
-    n_workers = cfg.compute_settings.available_accelerators
-    n_workers = len(n_workers) if isinstance(n_workers, list) else int(n_workers)
+    if cfg.compute_settings.name == "workstation":
+        n_workers = cfg.compute_settings.available_accelerators
+        n_workers = len(n_workers) if isinstance(n_workers, list) else int(n_workers)
+    elif cfg.compute_settings.name == "polaris":
+        n_workers = cfg.compute_settings.num_nodes * 4
+    else:
+        n_workers = 1
+
     thinker = Thinker(
         queue=queues,
         df=seq_df,
