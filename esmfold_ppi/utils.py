@@ -117,7 +117,7 @@ def get_accID(prot_name):
     return prot_name.split("|")[1]
 
 
-def parse_seqs(fasta_file, seq_type=None):
+def parse_fasta(fasta_file, seq_type=None):
     records = list(SeqIO.parse(fasta_file, "fasta"))
 
     seq_info = []

@@ -20,7 +20,7 @@ from esmfold_ppi.utils import (
     BaseModel,
     ProteinConfig,
     mkdir_validator,
-    parse_seqs,
+    parse_fasta,
     path_validator,
 )
 
@@ -77,8 +77,8 @@ def run_esmfold(
     plddt = mda_u.select_atoms("protein and name CA").bfactors.mean()
     protein.plddt = plddt
 
-    # Write the data to a JSON file
-    filename = protein.id + ".json"
+    # Write the data to a yaml file
+    filename = protein.id + ".yaml"
     protein.write_yaml(data_dir / filename)
 
     return protein
@@ -243,8 +243,8 @@ if __name__ == "__main__":
     logging.info("Loading proteins")
 
     # Load the protein interaction data
-    host_seqs = parse_seqs(cfg.host_fa, seq_type="host")
-    viral_seqs = parse_seqs(cfg.viral_fa, seq_type="viral")
+    host_seqs = parse_fasta(cfg.host_fa, seq_type="host")
+    viral_seqs = parse_fasta(cfg.viral_fa, seq_type="viral")
 
     seq_df = pd.DataFrame(host_seqs + viral_seqs)
     seq_df.to_pickle(cfg.output_dir / "seq.pkl")
