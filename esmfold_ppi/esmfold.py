@@ -6,7 +6,7 @@ import torch
 from esmfold_ppi.registry import clear_torch_cuda_memory_callback, register
 
 
-# @register(shutdown_callback=clear_torch_cuda_memory_callback)
+@register(shutdown_callback=clear_torch_cuda_memory_callback)
 class EsmFold:
     """ESM-Fold model for protein structure prediction."""
 
