@@ -19,6 +19,7 @@ from esmfold_ppi.parsl import ComputeSettingsTypes
 from esmfold_ppi.utils import (
     BaseModel,
     ProteinConfig,
+    comb_prot,
     mkdir_validator,
     parse_fasta,
     path_validator,
@@ -101,6 +102,7 @@ class Thinker(BaseThinker):  # type: ignore[misc]
         df: pd.DataFrame,
         n_workers: int,
         result_logger: ResultLogger,
+        plddt_cutoff: float = 70.0,
         **kwargs: Any,
     ) -> None:
         """The workflow.
@@ -120,25 +122,40 @@ class Thinker(BaseThinker):  # type: ignore[misc]
         self.n_workers = n_workers
         self.result_logger = result_logger
         self.task_idx = 0
+        self.plddt_cutoff = plddt_cutoff
 
         self.host_seq = []
         self.viral_seq = []
+        self.comp_queue = []
+
         logging.info(f"Running esmfold {len(self.df)} sequences. ")
 
     def submit_esmfold_task(self):
-        if self.task_idx >= len(self.df):
+        if self.task_idx < len(self.df):
+            input_dict = self.df.iloc[self.task_idx].to_dict()
+
+            self.queues.send_inputs(
+                ProteinConfig(**input_dict),
+                method="run_esmfold",
+                topic="esmfold",
+                keep_inputs=False,
+            )
+            self.task_idx += 1
+        elif (self.task_idx >= len(self.df)) and (
+            self.task_idx < (len(self.df) + len(self.comp_queue))
+        ):
+            comp_ind = self.task_idx - len(self.df)
+            input_prot = self.comp_queue[comp_ind]
+            self.queues.send_inputs(
+                input_prot,
+                method="run_esmfold",
+                topic="esmfold",
+                keep_inputs=False,
+            )
+            self.task_idx += 1
+        else:
             self.done.set()
             return
-
-        input_dict = self.df.iloc[self.task_idx].to_dict()
-
-        self.queues.send_inputs(
-            ProteinConfig(**input_dict),
-            method="run_esmfold",
-            topic="esmfold",
-            keep_inputs=False,
-        )
-        self.task_idx += 1
 
     @agent(startup=True)  # type: ignore[misc]
     def start_tasks(self) -> None:
@@ -149,11 +166,17 @@ class Thinker(BaseThinker):  # type: ignore[misc]
     @result_processor(topic="esmfold")
     def process_esm_result(self, result: Result):
         self.result_logger.log(result, "esmfold")
-        if result.value.plddt >= 70:
+        if result.value.plddt >= self.plddt_cutoff:
             if result.value.type == "host":
                 self.host_seq.append(result.value)
+                if self.viral_seq != []:
+                    self.comp_queue += comb_prot([result.value], self.viral_seq)
+                    self.comp_queue = list(set(self.comp_queue))
             elif result.value.type == "viral":
                 self.viral_seq.append(result.value)
+                if self.host_seq != []:
+                    self.comp_queue += comb_prot(self.host_seq, [result.value])
+                    self.comp_queue = list(set(self.comp_queue))
 
         if not result.success:
             logging.warning(f"Bad inference result: {result.json()}")
@@ -246,12 +269,13 @@ if __name__ == "__main__":
     host_seqs = parse_fasta(cfg.host_fa, seq_type="host")
     viral_seqs = parse_fasta(cfg.viral_fa, seq_type="viral")
 
-    seq_df = pd.DataFrame(host_seqs + viral_seqs)
-    seq_df.to_pickle(cfg.output_dir / "seq.pkl")
     # Use a small subset of the proteins for testing
     if cfg.small_subset:
-        seq_df = seq_df[: cfg.small_subset]
+        host_seqs = host_seqs[: cfg.small_subset]
+        viral_seqs = viral_seqs[: cfg.small_subset]
     # proteins = [get_comp_seq(pdb) for pdb in tqdm(sequences)]
+    seq_df = pd.DataFrame(host_seqs + viral_seqs)
+    seq_df.to_pickle(cfg.output_dir / "seq.pkl")
 
     logging.info(f"Loaded {len(seq_df)} proteins")
 
