@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Optional, Type, TypeVar, Union
+from typing import List, Optional, Type, TypeVar, Union
 
 import yaml
 from Bio import SeqIO
@@ -112,12 +112,27 @@ class ProteinConfig(BaseModel):
     pdb_file: Path = Field(None)
     plddt: float = Field(0.0)
 
+    def __add__(self, other):
+        if self.__class__ == other.__class__:
+            return self.__class__(
+                id="-".join([self.id, other.id]),
+                sequence=":".join([self.sequence, other.sequence]),
+                type="complex",
+                pdb_file=None,
+                plddt=0.0,
+            )
+        else:
+            raise Exception("Unsupported operation.")
+
+    def __hash__(self) -> int:
+        return hash(self.id)
+
 
 def get_accID(prot_name):
     return prot_name.split("|")[1]
 
 
-def parse_fasta(fasta_file, seq_type=None):
+def parse_fasta(fasta_file, seq_type="unspecified"):
     records = list(SeqIO.parse(fasta_file, "fasta"))
 
     seq_info = []
@@ -131,3 +146,7 @@ def parse_fasta(fasta_file, seq_type=None):
         }
         seq_info.append(local_df)
     return seq_info
+
+
+def comb_prot(host_prot: List[ProteinConfig], viral_prot: List[ProteinConfig]) -> List:
+    return [hp + vp for hp in host_prot for vp in viral_prot]
