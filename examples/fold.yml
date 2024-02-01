@@ -1,0 +1,9 @@
+seq_file: ./example.fa
+output_dir: run_test/
+
+esmfold:
+  torch_hub_dir: ~/.cache
+
+compute_settings:
+  name: workstation
+  available_accelerators: 2
