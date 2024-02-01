@@ -1,14 +1,14 @@
 # esm_ppi
 
-[![docs](https://github.com/gpauloski/python-template/actions/workflows/docs.yml/badge.svg)](https://github.com/gpauloski/python-template/actions)
+<!-- [![docs](https://github.com/gpauloski/python-template/actions/workflows/docs.yml/badge.svg)](https://github.com/gpauloski/python-template/actions)
 [![tests](https://github.com/gpauloski/python-template/actions/workflows/tests.yml/badge.svg)](https://github.com/gpauloski/python-template/actions)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/gpauloski/python-template/main.svg)](https://results.pre-commit.ci/latest/github/gpauloski/python-template/main)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/gpauloski/python-template/main.svg)](https://results.pre-commit.ci/latest/github/gpauloski/python-template/main) -->
 
-The package is built to fold protein-protein complexes using ESMFold. 
+The package is built to fold single protein and protein-protein complexes using ESMFold. 
 
 Built on [python template](https://github.com/gpauloski/python-template/)
 
-## Setup Instructions
+<!-- ## Setup Instructions
 
 1. Click the "Use this template" button at the top right of this page.
 2. Delete and directories you will not be using (commonly `docs/` if you do not want to use MKDocs or `examples/` if you will not have example code).
@@ -38,25 +38,69 @@ I recommend making a few other changes to the repo's setting on GitHub.
   - Check "Require status checks to pass before merging"
     - Check "Require branches to be up to date before merging"
     - Set required checks (e.g., pre-commit.ci, tests, etc.)
-  - Check "Do not allow bypassing the above settings"
+  - Check "Do not allow bypassing the above settings" -->
 
 ## Installation
 
-Install via pip:
-```
-$ pip install foobar
+Clone the repo to your local machine. 
+
+```bash
+git clone https://github.com/hengma1001/esmfold_ppi.git
+cd esmfold_ppi
 ```
 
-For local development:
-```
-$ tox --devenv venv -e py 310
-$ pre-commit install
-```
-or
-```
-$ pip install -e .
+Create a conda environment for the folding applications. 
+
+```bash
+conda create -n esmfold python=3.9
+conda activate esmfold
 ```
 
-## Additional README Sections
+Install PyTorch. 
+
+```bash
+conda install pytorch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1 -c pytorch
+```
+
+Install other dependencies. 
+
+```bash
+pip install -r envs/requirements.txt
+```
+
+Install the package. 
+
+```bash 
+pip install -e .
+```
+
+## Run the folding
+
+The esmfold run can be initiated with following commands. 
+
+```bash
+cd examples
+python -m esmfold_ppi.run_fold -c fold.yml
+```
+
+For the input yaml format, the variables are defined as follow. 
+
+```yaml
+# input sequences in fasta format
+seq_file: ./example.fa
+# output directory for the colmena workflow
+output_dir: run_test/
+
+esmfold:
+  # the cache directory for the esmfold weight
+  torch_hub_dir: ~/.cache
+
+# compute setting for parsl
+compute_settings:
+  # use local machine
+  name: workstation
+  # number of GPUs to use, can also be a list of gpu ids 
+  available_accelerators: 2
+```
 
 ...
