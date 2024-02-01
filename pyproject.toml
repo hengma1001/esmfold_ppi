@@ -23,9 +23,6 @@ dependencies = [
     "requests",
 ]
 
-[tool.setuptools.dynamic]
-dependencies = {file = ["envs/requirements.txt"]}
-
 [project.urls]
 homepage = "https://github.com/foobar-author/foobar"
 documentation = "https://foobar.readthedocs.io"
